@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V.E.D.A. | Medical Diagnostic System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb; 
+            --accent: #06b6d4;
+            --glass: rgba(255, 255, 255, 0.9);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-gradient: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* 🔵 HEADER */
+        nav {
+            background: linear-gradient(90deg, #2563eb 0%, #06b6d4 100%);
+            padding: 0.8rem 3rem;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.5rem;
+            color: white; 
+            display: flex; align-items: center; gap: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-links { display: flex; gap: 20px; }
+        
+        .nav-item {
+            padding: 6px 15px; cursor: pointer;
+            font-weight: 500; font-size: 0.9rem; transition: all 0.3s;
+            color: rgba(255, 255, 255, 0.9); border-radius: 6px; user-select: none;
+        }
+        
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active {
+            background: rgba(255,255,255,0.2); color: white; font-weight: 700;
+        }
+
+        /* 📦 LAYOUT CONTAINERS */
+        .page-section { display: none; max-width: 1200px; margin: 30px auto; padding: 0 20px; animation: fadeIn 0.5s ease-out; }
+        #page-home { display: flex; gap: 30px; align-items: flex-start; }
+        #page-pricing { text-align: center; }
+        #page-dashboard { }
+
+        /* --- HOME LEFT PANEL --- */
+        /* Removed padding-top to move title up */
+        .left-panel { flex: 1.4; padding-top: 0; }
+        
+        /* Updated Title Styles to sit higher */
+        .main-title { 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 2.8rem; 
+            margin: 0 0 20px 0; 
+            line-height: 1.2; 
+            color: #0f172a; 
+        }
+        .sub-text { font-size: 1rem; line-height: 1.6; color: #475569; margin-bottom: 35px; }
+
+        /* FEATURE & USE CASE GRIDS */
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px; }
+        .feature-card { 
+            background: white; padding: 25px; border-radius: 16px; 
+            border: 1px solid #e2e8f0; transition: 0.3s; 
+            display: flex; flex-direction: column; align-items: flex-start;
+        }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-color: var(--primary); }
+        .feature-card i { color: var(--primary); font-size: 1.5rem; margin-bottom: 15px; background: #eff6ff; padding: 12px; border-radius: 12px; }
+        .feature-card h4 { font-weight: 700; font-size: 1rem; margin: 0 0 10px 0; color: #1e293b; }
+        .feature-card p { font-size: 0.85rem; color: #64748b; margin: 0; line-height: 1.6; }
+
+        .use-cases-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 50px; }
+        .use-case-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; transition: 0.3s; }
+        .use-case-card:hover { border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .use-case-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: 700; color: #1e293b; }
+        .use-case-icon { color: var(--accent); }
+        .use-case-text { font-size: 0.85rem; color: #64748b; line-height: 1.6; text-align: left; }
+
+        /* FAQ */
+        .faq-container { margin-top: 50px; background: white; padding: 30px; border-radius: 20px; border: 1px solid #e2e8f0; }
+        .faq-item { border-bottom: 1px solid #f1f5f9; }
+        .faq-question { width: 100%; padding: 20px 0; display: flex; justify-content: space-between; align-items: center; font-weight: 600; cursor: pointer; background: none; border: none; text-align: left; color: #1e293b; }
+        .faq-answer { display: none; padding-bottom: 20px; color: #64748b; line-height: 1.6; }
+        .faq-item.active .faq-answer { display: block; }
+        .faq-item.active .fa-chevron-down { transform: rotate(180deg); }
+
+        /* --- RIGHT PANEL (COMPACT FORM) --- */
+        .right-panel { flex: 0.8; max-width: 360px; position: sticky; top: 80px; }
+
+        .card {
+            background: white; 
+            border-radius: 16px; 
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-header { font-family: 'Orbitron', sans-serif; color: var(--primary); margin-top: 0; margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        
+        label { display: block; margin-bottom: 0.3rem; font-weight: 600; color: #475569; font-size: 0.8rem; }
+        
+        /* Compact Inputs */
+        input, select, textarea {
+            width: 100%; padding: 0.6rem; margin-bottom: 0.8rem;
+            border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'Inter', sans-serif; box-sizing: border-box;
+            background: #ffffff; transition: 0.3s; font-size: 0.9rem;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .btn {
+            width: 100%; padding: 0.8rem; border: none; border-radius: 8px;
+            font-weight: 700; cursor: pointer; transition: 0.3s; font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); letter-spacing: 0.5px; font-size: 0.9rem;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3); }
+
+        /* PRICING */
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 40px; }
+        .price-card { background: white; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; position: relative; display: flex; flex-direction: column; transition: 0.3s; text-align: left;}
+        .price-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .price-card.popular { border: 2px solid var(--primary); transform: scale(1.05); z-index: 10; }
+        .price-amount { font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 15px; font-family: 'Orbitron'; }
+        .price-features li { list-style: none; padding: 8px 0; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; color: #475569; font-size: 0.9rem; }
+
+        /* DASHBOARD TABLE */
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        th { text-align: left; padding: 12px; color: #64748b; font-weight: 600; font-size: 0.9rem; }
+        td { background: white; padding: 15px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.9rem; }
+        td:first-child { border-left: 1px solid #f1f5f9; border-radius: 10px 0 0 10px; font-weight: 600; }
+        td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 10px 10px 0; }
+
+        /* RESULT & MODAL */
+        #result-card { display: none; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border-left: 6px solid var(--accent); margin-bottom: 50px; animation: fadeIn 0.8s ease-out; }
+        
+        /* Formatted Result Text */
+        #ai-text-content strong { color: var(--primary); }
+        #ai-text-content ul { padding-left: 20px; }
+        #ai-text-content li { margin-bottom: 5px; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; width: 90%; max-width: 650px; padding: 25px; border-radius: 16px; max-height: 80vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+
+        .hidden { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        @media (max-width: 900px) { #page-home { flex-direction: column; } .nav-links { display: none; } .right-panel { max-width: 100%; position: relative; top: 0; } }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo"><i class="fa-solid fa-dna"></i> &nbsp; V.E.D.A.</div>
+    <div class="nav-links">
+        <div class="nav-item active" id="btn-home" onclick="showPage('home')">Home</div>
+        <div class="nav-item" id="btn-pricing" onclick="showPage('pricing')">Prices</div>
+        <div class="nav-item" id="btn-dashboard" onclick="showPage('dashboard')">Dashboard</div>
+    </div>
+</nav>
+
+<div id="page-home" class="page-section" style="display:flex;">
+    
+    <div class="left-panel">
+        
+        <div id="intro-content">
+            <h1 class="main-title">Visual Evaluation & <br>Diagnosis Assistant</h1>
+            <p class="sub-text">V.E.D.A. utilizes advanced medical imaging protocols for rapid triage. Upload patient data securely for instant verification and automated analysis.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h4>Rapid Triage</h4>
+                    <p>Utilizes high-speed algorithmic processing to interpret X-Rays and MRI scans within seconds, facilitating immediate triage decisions.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h4>Secure Handling</h4>
+                    <p>All patient data is handled via end-to-end encrypted pipelines, ensuring full compliance with medical confidentiality standards.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-file-waveform"></i>
+                    <h4>Plain-Text Reports</h4>
+                    <p>Generates detailed, structured summaries that break down complex imaging findings into readable diagnostics for doctors.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <h4>Multi-Modality</h4>
+                    <p>Native capability to analyze diverse medical imaging formats, including X-rays, CT scans, MRIs, and Ultrasounds with high precision.</p>
+                </div>
+            </div>
+
+            <h2 class="use-cases-title" style="text-align:left; margin-bottom:20px;">Use Cases</h2>
+            <div class="use-cases-grid">
+                <div class="use-case-card"><div class="use-case-header"><i class="fa-solid fa-lungs use-case-icon"></i> Chest X-ray</div><p class="use-case-text">After a routine check-up, get a clear explanation of your chest X-ray, highlighting any areas of concern in simple terms.</p></div>
+                <div class="use-case-card"><div class="use-case-header"><i class="fa-solid fa-brain use-case-icon"></i> MRI Scan</div><p class="use-case-text">Received complex MRI results? We break down the medical jargon, providing an easy-to-understand summary of your scan.</p></div>
+                <div class="use-case-card"><div class="use-case-header"><i class="fa-solid fa-tooth use-case-icon"></i> Dental</div><p class="use-case-text">Get a clear picture of your dental health by interpreting your dental X-rays, explaining issues like cavities.</p></div>
+                <div class="use-case-card"><div class="use-case-header"><i class="fa-solid fa-person-running use-case-icon"></i> Sports Injury</div><p class="use-case-text">Athletes can quickly understand the extent of their injuries by interpreting X-rays or MRIs, aiding in recovery planning.</p></div>
+            </div>
+
+            <div class="faq-container">
+                <h3 style="font-family:'Orbitron'; margin-bottom:20px;">Frequently Asked Questions</h3>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)"><span>What is V.E.D.A.?</span><i class="fa-solid fa-chevron-down"></i></button>
+                    <div class="faq-answer">V.E.D.A. is a diagnostic support tool that uses advanced pattern recognition to analyze medical images. It assists professionals by flagging potential abnormalities.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)"><span>Is data safe?</span><i class="fa-solid fa-chevron-down"></i></button>
+                    <div class="faq-answer">Absolutely. We use banking-grade encryption for all file transfers. Patient scans are processed in a secure environment and are not stored permanently on public servers.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)"><span>Can I upload multiple files?</span><i class="fa-solid fa-chevron-down"></i></button>
+                    <div class="faq-answer">Yes, V.E.D.A. supports batch processing for Pro users. You can upload multiple DICOM or image files for sequential analysis.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; color:var(--primary); font-family:'Orbitron',sans-serif;">📋 Analysis Report</h2>
+                <span style="background:#dcfce7; color:#166534; padding:5px 12px; border-radius:20px; font-size:0.75rem; font-weight:700;">CONFIDENTIAL</span>
+            </div>
+            <div id="ai-text-content" style="font-family:'Inter', sans-serif; line-height:1.7; color:#334155;"></div>
+            <div style="margin-top:25px; display:flex; gap:10px;">
+                <button class="btn" style="background:#475569;" onclick="downloadPDF()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+                <button class="btn" style="background:white; color:#333; border:1px solid #ccc;" onclick="location.reload()">Next Patient</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="right-panel">
+        <div class="card">
+            <h2 class="form-header"><i class="fa-solid fa-hospital-user"></i> Patient Entry</h2>
+            <form id="patientForm">
+                <label>Full Name</label><input type="text" id="name" placeholder="Ex: Anurag Singh" required>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;"><label>Age</label><input type="number" id="age" required></div>
+                    <div style="flex:1;"><label>Gender</label><select id="gender"><option>Male</option><option>Female</option></select></div>
+                </div>
+                <label>Symptoms</label><textarea id="symptoms" rows="2" placeholder="Ex: Headache..."></textarea>
+                <label>Allergies</label><input type="text" id="allergies" placeholder="Ex: Penicillin">
+                
+                <label>Upload Scan (Image/PDF)</label>
+                <input type="file" id="file" required onchange="previewImage(this)">
+                <div id="image-preview-container" class="hidden" style="margin-bottom:10px; text-align:center;">
+                    <img id="image-preview" src="#" style="max-width: 100%; border-radius: 8px; border: 1px solid #e2e8f0;">
+                </div>
+
+                <button type="submit" class="btn" id="subBtn">INITIALIZE SCAN ⚡</button>
+            </form>
+            
+            <div id="loader" class="hidden" style="text-align:center; padding:20px;">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem; color:var(--primary);"></i>
+                <p id="loader-text" style="font-weight:600; margin-top:10px; color:var(--primary);">Processing...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="page-pricing" class="page-section">
+    <h2 style="font-family:'Orbitron'; font-size:2.5rem; margin-bottom:10px; color:#0f172a;">Choose Your Plan</h2>
+    <p style="color:#64748b; font-size:1.1rem;">Professional diagnostic solutions for every scale.</p>
+    <div class="pricing-grid">
+        <div class="price-card">
+            <div class="price-title">Starter</div><div class="price-amount">$0</div>
+            <ul class="price-features">
+                <li><i class="fa-solid fa-check"></i> 5 Scans per Month</li>
+                <li><i class="fa-solid fa-check"></i> Basic X-Ray Analysis</li>
+                <li><i class="fa-solid fa-check"></i> Email Support</li>
+            </ul>
+            <button class="btn" style="background:#e2e8f0; color:#333; margin-top:auto;">Current Plan</button>
+        </div>
+        <div class="price-card popular">
+            <div style="background:var(--primary); color:white; position:absolute; top:0; right:0; padding:5px 15px; border-radius:0 0 0 10px; font-weight:bold;">POPULAR</div>
+            <div class="price-title">Professional</div><div class="price-amount">$29</div>
+            <ul class="price-features">
+                <li><i class="fa-solid fa-check"></i> 50 Scans per Month</li>
+                <li><i class="fa-solid fa-check"></i> Priority Processing</li>
+                <li><i class="fa-solid fa-check"></i> Detailed PDF Reports</li>
+                <li><i class="fa-solid fa-check"></i> MRI & CT Support</li>
+            </ul>
+            <button class="btn" style="margin-top:auto;">Upgrade Now</button>
+        </div>
+        <div class="price-card">
+            <div class="price-title">Enterprise</div><div class="price-amount">$99</div>
+            <ul class="price-features">
+                <li><i class="fa-solid fa-check"></i> Unlimited Scans</li>
+                <li><i class="fa-solid fa-check"></i> Direct API Access</li>
+                <li><i class="fa-solid fa-check"></i> 24/7 Dedicated Support</li>
+            </ul>
+            <button class="btn" style="background:#1e293b; margin-top:auto;">Contact Sales</button>
+        </div>
+    </div>
+</div>
+
+<div id="page-dashboard" class="page-section">
+    <div class="card" style="max-width:100%; margin:0 auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="font-family:'Orbitron'; color:var(--primary);">📊 Hospital Database</h2>
+            <button onclick="loadData()" class="btn" style="width:auto; padding:8px 20px;">Refresh Data 🔄</button>
+        </div>
+        <table>
+            <thead><tr><th>Patient Name</th><th>Details</th><th>Status</th><th>Report</th></tr></thead>
+            <tbody id="db-body">
+                <tr><td colspan="4" style="text-align:center;">Click Refresh to load data.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="reportModal" class="modal-overlay" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="margin:0; color:var(--primary);">Medical Record</h2>
+            <button onclick="closeModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div id="modalText" style="white-space: pre-wrap; line-height:1.6; color:#334155; margin-top:20px;"></div>
+    </div>
+</div>
+
+<script>
+    // 🔴 YOUR URLS
+    const SUBMIT_URL = "https://teamveda.app.n8n.cloud/webhook-test/d5a20dfa-1133-48d9-acf0-292c0ba1f9fb"; 
+    const FETCH_URL = "https://teamveda.app.n8n.cloud/webhook/26b1e3ed-e4a2-472e-a5a6-a9528cb0279c"; 
+
+    // --- 1. NAVIGATION LOGIC ---
+    function showPage(pageId) {
+        document.getElementById('page-home').style.display = 'none';
+        document.getElementById('page-pricing').style.display = 'none';
+        document.getElementById('page-dashboard').style.display = 'none';
+
+        document.getElementById('btn-home').classList.remove('active');
+        document.getElementById('btn-pricing').classList.remove('active');
+        document.getElementById('btn-dashboard').classList.remove('active');
+
+        if(pageId === 'home') {
+            document.getElementById('page-home').style.display = 'flex';
+            document.getElementById('btn-home').classList.add('active');
+        } else if (pageId === 'pricing') {
+            document.getElementById('page-pricing').style.display = 'block';
+            document.getElementById('btn-pricing').classList.add('active');
+        } else if (pageId === 'dashboard') {
+            document.getElementById('page-dashboard').style.display = 'block';
+            document.getElementById('btn-dashboard').classList.add('active');
+            loadData();
+        }
+    }
+    showPage('home'); // Init
+
+    // --- 2. FAQ TOGGLE ---
+    function toggleFaq(btn) {
+        const item = btn.parentElement;
+        item.classList.toggle('active');
+    }
+
+    // --- 3. IMAGE PREVIEW ---
+    function previewImage(input) {
+        const [file] = input.files;
+        if (file) {
+            document.getElementById('image-preview-container').classList.remove('hidden');
+            document.getElementById('image-preview').src = URL.createObjectURL(file);
+        }
+    }
+
+    // --- 4. FORM SUBMIT (Fixed: Uses Marked.js for formatting) ---
+    document.getElementById('patientForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        document.getElementById('subBtn').classList.add('hidden');
+        document.getElementById('loader').classList.remove('hidden');
+
+        // Pulse Text
+        const messages = ["Initializing...", "Reading Scan Data...", "Analyzing...", "Finalizing Report..."];
+        let msgIndex = 0;
+        const pulse = setInterval(() => {
+            document.getElementById('loader-text').innerText = messages[msgIndex % messages.length];
+            msgIndex++;
+        }, 1500);
+
+        const fd = new FormData();
+        fd.append('name', document.getElementById('name').value);
+        fd.append('age', document.getElementById('age').value);
+        fd.append('gender', document.getElementById('gender').value);
+        fd.append('symptoms', document.getElementById('symptoms').value);
+        fd.append('allergies', document.getElementById('allergies').value);
+        fd.append('file', document.getElementById('file').files[0]);
+
+        try {
+            const res = await fetch(SUBMIT_URL, { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            clearInterval(pulse);
+            document.getElementById('loader').classList.add('hidden');
+            
+            // ✨ Magic Swap
+            document.getElementById('intro-content').classList.add('hidden'); 
+            document.getElementById('result-card').style.display = 'block';
+            
+            // FIX: Render Markdown as HTML properly (Fixes "too much *" issue)
+            document.getElementById('ai-text-content').innerHTML = marked.parse(data.reply);
+            document.getElementById('subBtn').classList.remove('hidden');
+
+        } catch (err) { 
+            alert("Connection Error. Please check if n8n is running."); 
+            clearInterval(pulse);
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('subBtn').classList.remove('hidden');
+        }
+    });
+
+    // --- 5. PDF DOWNLOAD (Strip tags for PDF) ---
+    async function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(20);
+        doc.text("V.E.D.A. Analysis Report", 10, 20);
+        
+        doc.setFontSize(12);
+        // Get plain text from the HTML for the PDF
+        const text = document.getElementById('ai-text-content').innerText;
+        const splitText = doc.splitTextToSize(text, 180);
+        
+        let y = 30;
+        splitText.forEach(line => {
+            if (y > 280) { doc.addPage(); y = 20; }
+            doc.text(line, 10, y);
+            y += 7;
+        });
+        
+        doc.save("Medical_Report.pdf");
+    }
+
+    // --- 6. DASHBOARD DATA (Cleaned) ---
+    async function loadData() {
+        const body = document.getElementById('db-body');
+        body.innerHTML = "<tr><td colspan='4'>Loading data...</td></tr>";
+        try {
+            const res = await fetch(FETCH_URL);
+            const data = await res.json();
+            body.innerHTML = data.map(p => `
+                <tr>
+                    <td><strong>${p['Patient Name']}</strong></td>
+                    <td>${p['Age']} / ${p['Gender']}</td>
+                    <td><span style="color:green;">● Complete</span></td>
+                    <td><button onclick='openModal(${JSON.stringify(p['AI Response'] || "")})' style="cursor:pointer; padding:5px;">View 👁️</button></td>
+                </tr>
+            `).join('');
+        } catch (err) { 
+            body.innerHTML = "<tr><td colspan='4' style='color:red;'>Error loading data. Check CORS or URL.</td></tr>"; 
+        }
+    }
+
+    // --- 7. MODAL (With Formatting) ---
+    function openModal(text) {
+        // Fix: Render markdown in the modal too
+        document.getElementById('modalText').innerHTML = marked.parse(text);
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+    function closeModal() {
+        document.getElementById('reportModal').style.display = 'none';
+    }
+</script>
+</body>
+</html>
